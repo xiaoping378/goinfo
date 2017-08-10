@@ -5,6 +5,9 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strconv"
+
+	"github.com/gorilla/mux"
 )
 
 // Ariticle 资产结构
@@ -17,19 +20,29 @@ type Ariticle struct {
 // Ariticles 资产集描述
 type Ariticles []Ariticle
 
+var ariticles = Ariticles{
+	Ariticle{Title: "t1", Desc: "第一个", Content: "其实我也不知道是什么"},
+	Ariticle{Title: "t2", Desc: "第二个", Content: "这是第二个什么鬼。。"},
+}
+
 func returnAllAriticles(w http.ResponseWriter, r *http.Request) {
-	ariticles := Ariticles{
-		Ariticle{Title: "t1", Desc: "第一个", Content: "其实我也不知道是什么"},
-		Ariticle{Title: "t2", Desc: "第二个", Content: "这是第二个什么鬼。。"},
-	}
+
 	fmt.Println("hit this all..")
 	json.NewEncoder(w).Encode(ariticles)
 }
 
+func singleAriticle(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	key, _ := strconv.Atoi(vars["id"])
+	fmt.Fprintf(w, "key: %d => %+v", key, ariticles[key])
+}
+
 func handleRequests() {
-	http.HandleFunc("/", homePage)
-	http.HandleFunc("/all", returnAllAriticles)
-	log.Fatal(http.ListenAndServe(":8001", nil))
+	router := mux.NewRouter().StrictSlash(true)
+	router.HandleFunc("/", homePage)
+	router.HandleFunc("/all", returnAllAriticles)
+	router.HandleFunc("/ariticle/{id}", singleAriticle)
+	log.Fatal(http.ListenAndServe(":8001", router))
 }
 
 func homePage(w http.ResponseWriter, r *http.Request) {
@@ -38,5 +51,6 @@ func homePage(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
+	fmt.Println("Rest API v2.0 - Mux Routers")
 	handleRequests()
 }
