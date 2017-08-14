@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"strconv"
@@ -37,11 +38,28 @@ func singleAriticle(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "key: %d => %+v", key, ariticles[key])
 }
 
+func postAriticle(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "appalication-json")
+
+	var a Ariticle
+
+	b, _ := ioutil.ReadAll(r.Body)
+	if err := json.Unmarshal(b, &a); err != nil {
+		fmt.Fprintf(w, err.Error())
+		return
+	}
+
+	ariticles = append(ariticles, a)
+
+	fmt.Fprintf(w, "OK: %+v", a)
+}
+
 func handleRequests() {
 	router := mux.NewRouter().StrictSlash(true)
 	router.HandleFunc("/", homePage)
-	router.HandleFunc("/all", returnAllAriticles)
-	router.HandleFunc("/ariticle/{id}", singleAriticle)
+	router.HandleFunc("/all", returnAllAriticles).Methods("GET")
+	router.HandleFunc("/ariticle/{id}", singleAriticle).Methods("GET")
+	router.HandleFunc("/ariticle", postAriticle).Methods("POST")
 	log.Fatal(http.ListenAndServe(":8001", router))
 }
 
