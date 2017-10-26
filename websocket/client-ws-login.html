@@ -1,0 +1,84 @@
+<html>
+<head></head>
+<body>
+    <script type="text/javascript">
+        var sock = null;
+        var wsuri = "ws://192.168.31.49:3000/websocket";
+
+        window.onload = function() {
+
+            console.log("onload");
+
+            sock = new WebSocket(wsuri);
+
+            sock.onopen = function() {
+                console.log("connected to " + wsuri);
+                sock.send('{"msg":"connect", "version":"1", "support":["1"]}')
+            }
+
+            sock.onclose = function(e) {
+                console.log("connection closed (" + e.code + ")");
+            }
+
+            sock.onmessage = function(e) {
+                if (e.data == '{"msg":"ping"}') {
+                    sock.send('{"msg":"pong"}')
+                }
+                document.getElementById('result').value = e.data
+            }
+        };
+// http login
+        function send() {
+            // var loginObj = {
+            //         "msg": "method",
+            //         "method": "login",
+            //         "id":"378",
+            //         "params":[
+            //             {
+            //                 "resume": "qraY-gWfUGBmGQ3TmfQb0QoqottF9TgD3h2qEaRalcR"
+            //             }
+            //         ]
+            //     }
+            var loginObj = {
+                "msg": "method",
+                "method": "login",
+                "id":"42",
+                "params":[
+                    {
+                        "user": { "username": "xxp" },
+                        "password": {
+                            "digest": "12345678",
+                            "algorithm":"sha-256"
+                        }
+                    }
+                ]
+            }
+            var msg = JSON.stringify(loginObj);
+            sock.send(msg);
+
+            var getUserRole = {
+                    "msg": "method",
+                    "method": "getUserRoles",
+                    "id": "377",
+                    "params": []
+                };
+            
+            var msg = JSON.stringify(getUserRole);
+            sock.send(msg)
+        };
+    </script>
+    <h1>WebSocket getStatus 测试</h1>
+    <form>
+        <p>
+            请求: <input id="message" type="text" value="Hello, world!">
+        </p>
+    </form>
+    <button onclick="send();">发送</button>
+    <form>
+        结果: </br>
+        <textarea id="result" style="margin: 0px; width: 640px; height: 378px;">
+                
+        </textarea>    
+    </form>
+</body>
+</html>
